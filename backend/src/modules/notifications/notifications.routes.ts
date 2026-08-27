@@ -1,0 +1,73 @@
+// =============================================================================
+// backend/src/modules/notifications/notifications.routes.ts
+// Push notification dispatch via Firebase Cloud Messaging
+// =============================================================================
+
+import { Router, Request, Response, NextFunction } from 'express';
+import { z } from 'zod';
+
+import { requireAuth } from '../../middleware/auth.middleware';
+import { ResponseHelper } from '../../shared/response.helper';
+import { sendPushNotification } from '../../config/firebase';
+import { prisma } from '../../config/database';
+import { logger } from '../../config/logger';
+
+const router = Router();
+
+const sendNotificationSchema = z.object({
+  targetUserId: z.string().optional(),
+  title: z.string().min(1).max(200),
+  body: z.string().min(1).max(500),
+  data: z.record(z.string()).optional(),
+});
+
+router.use(requireAuth);
+
+/** POST /api/v1/notifications/send — Send push notification to a user's devices */
+router.post('/send', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const requestingUserId = req.userId!;
+    const data = sendNotificationSchema.parse(req.body);
+
+    const requestingUser = await prisma.user.findUnique({ where: { firebaseUid: requestingUserId } });
+    if (!requestingUser) return ResponseHelper.notFound(res, 'User');
+
+    // If targeting another user, verify caregiver access
+    let targetInternalId = requestingUser.id;
+    if (data.targetUserId && data.targetUserId !== requestingUser.id) {
+      const relation = await prisma.caregiverRelation.findFirst({
+        where: { userId: data.targetUserId, caregiverId: requestingUser.id, isActive: true },
+      });
+      if (!relation) return ResponseHelper.forbidden(res, 'No caregiver access to this user');
+      targetInternalId = data.targetUserId;
+    }
+
+    // Get all active device tokens for the target user
+    const tokens = await prisma.deviceToken.findMany({
+      where: { userId: targetInternalId, isActive: true },
+      select: { token: true },
+    });
+
+    if (tokens.length === 0) {
+      return ResponseHelper.ok(res, { sent: 0 }, 'No active devices found');
+    }
+
+    let sent = 0;
+    for (const { token } of tokens) {
+      const success = await sendPushNotification({
+        deviceToken: token,
+        title: data.title,
+        body: data.body,
+        data: data.data,
+      });
+      if (success) sent++;
+    }
+
+    logger.info('Notifications sent', { targetUserId: targetInternalId, sent, total: tokens.length });
+    ResponseHelper.ok(res, { sent, total: tokens.length });
+  } catch (error) {
+    next(error);
+  }
+});
+
+export default router;
