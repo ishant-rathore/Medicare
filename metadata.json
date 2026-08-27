@@ -1,0 +1,6 @@
+{
+  "name": "Medicare - Voice Medication Reminder",
+  "description": "Senior-friendly voice-first medication reminder and health tracking companion with high contrast, regional audio alerts, AI prescription scanning, and caregiver monitoring.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
