@@ -29,9 +29,17 @@
   - [x] Main Dashboard Page (Senior-friendly design, Greeting, Adherence)
   - [x] Actionable Dose Card (TAKEN, SNOOZE, SKIP)
   - [x] Dashboard State Management (Riverpod)
-- [ ] **Phase 9: Frontend Medicine Workflows**
-  - [ ] Add/Edit Medicine Form
-  - [ ] Reminder Configuration
-  - [ ] Camera integration for pill photo
-- [ ] **Phase 10: Frontend Authentication & Onboarding**
-- [ ] **Phase 11: Testing & CI/CD**
+- [x] **Phase 9: Frontend Medicine Workflows**
+  - [x] Add/Edit Medicine Form
+  - [x] Reminder Configuration
+  - [x] Camera integration for pill photo
+- [x] **Phase 10: Frontend Authentication & Onboarding**
+  - [x] Auth Provider via Firebase Auth
+  - [x] Splash routing page
+  - [x] Senior-friendly Onboarding slides
+  - [x] Login & Register pages
+  - [x] Profile Setup logic
+- [x] **Phase 11: Testing & CI/CD**
+  - [x] GitHub Actions YAML Pipeline for both Backend and Frontend
+  - [x] Backend Jest unit tests (Auth Middleware)
+  - [x] Frontend Flutter unit tests (Recurrence Calculator)
