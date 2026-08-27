@@ -240,7 +240,7 @@ MIT License — see [`LICENSE`](LICENSE)
 
 ## 👥 Team
 
-Built for **Smart India Hackathon 2026** — CEP Project: Medicare – Voice Reminders for Senior Citizens.
+2026** — CEP Project: Medicare – Voice Reminders for Senior Citizens.
 
 ---
 
