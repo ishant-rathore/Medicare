@@ -1,6 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
 import { requireAuth } from '../middleware/auth.middleware';
-import { AppError } from '../utils/app-error';
+import { AppError } from '../shared/errors/app-error';
 import { getAuth } from 'firebase-admin/auth';
 
 jest.mock('firebase-admin/auth', () => ({
@@ -8,8 +7,8 @@ jest.mock('firebase-admin/auth', () => ({
 }));
 
 describe('Auth Middleware', () => {
-  let req: Partial<Request>;
-  let res: Partial<Response>;
+  let req: any;
+  let res: any;
   let next: NextFunction;
 
   beforeEach(() => {
