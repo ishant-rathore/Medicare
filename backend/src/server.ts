@@ -5,65 +5,90 @@
 
 import 'dotenv/config';
 
-import { getEnv } from './config/environment';
+import { createApp } from './app';
 import { connectDatabase, disconnectDatabase } from './config/database';
+import { getEnv } from './config/environment';
 import { getFirebaseApp } from './config/firebase';
 import { logger } from './config/logger';
-import { createApp } from './app';
 
 async function start(): Promise<void> {
   const env = getEnv();
 
-  // Initialize Firebase Admin SDK
+  // Initialize required server-side Firebase services.
   getFirebaseApp();
 
-  // Connect to database
+  // Verify database connectivity before accepting traffic.
   await connectDatabase();
 
-  // Create Express app
   const app = createApp();
-
-  // Start HTTP server
   const server = app.listen(env.PORT, '0.0.0.0', () => {
     logger.info('Medicare API server started', {
       port: env.PORT,
       environment: env.NODE_ENV,
-      apiBase: `/api/v1`,
+      apiBase: '/api/v1',
     });
   });
 
-  // ─── Graceful shutdown ───────────────────────────────────────────────────
-  const gracefulShutdown = async (signal: string) => {
-    logger.info(`Received ${signal}. Starting graceful shutdown...`);
+  let shuttingDown = false;
 
-    server.close(async () => {
-      logger.info('HTTP server closed');
-      await disconnectDatabase();
-      logger.info('Shutdown complete');
-      process.exit(0);
-    });
+  const gracefulShutdown = async (signal: string, exitCode = 0): Promise<void> => {
+    if (shuttingDown) return;
+    shuttingDown = true;
 
-    // Force exit after 30 seconds
-    setTimeout(() => {
-      logger.error('Forced shutdown after timeout');
+    logger.info('Starting graceful shutdown', { signal });
+
+    const forceExitTimer = setTimeout(() => {
+      logger.error('Forced shutdown after timeout', { signal });
       process.exit(1);
     }, 30_000);
+    forceExitTimer.unref();
+
+    server.close(async (serverError?: Error) => {
+      try {
+        if (serverError) {
+          logger.error('HTTP server failed to close cleanly', {
+            signal,
+            error: serverError.message,
+          });
+          clearTimeout(forceExitTimer);
+          process.exit(1);
+          return;
+        }
+
+        await disconnectDatabase();
+        clearTimeout(forceExitTimer);
+        logger.info('Shutdown complete', { signal });
+        process.exit(exitCode);
+      } catch (error) {
+        clearTimeout(forceExitTimer);
+        logger.error('Shutdown cleanup failed', {
+          signal,
+          error: error instanceof Error ? error.message : 'unknown shutdown error',
+        });
+        process.exit(1);
+      }
+    });
   };
 
-  process.on('SIGTERM', () => void gracefulShutdown('SIGTERM'));
-  process.on('SIGINT', () => void gracefulShutdown('SIGINT'));
+  process.once('SIGTERM', () => void gracefulShutdown('SIGTERM'));
+  process.once('SIGINT', () => void gracefulShutdown('SIGINT'));
 
   process.on('unhandledRejection', (reason) => {
-    logger.error('Unhandled promise rejection', reason);
+    logger.error('Unhandled promise rejection', {
+      error: reason instanceof Error ? reason.message : String(reason),
+    });
+    void gracefulShutdown('unhandledRejection', 1);
   });
 
   process.on('uncaughtException', (error) => {
-    logger.error('Uncaught exception', error);
-    process.exit(1);
+    logger.error('Uncaught exception', { error: error.message });
+    void gracefulShutdown('uncaughtException', 1);
   });
 }
 
 start().catch((error) => {
-  console.error('Failed to start server:', error);
+  logger.error('Failed to start server', {
+    error: error instanceof Error ? error.message : 'unknown startup error',
+  });
   process.exit(1);
 });
