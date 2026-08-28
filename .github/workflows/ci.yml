@@ -6,15 +6,33 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
+  documentation:
+    name: Documentation Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate documentation files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f docs/README.md
+          for dir in docs/01-project docs/02-requirements docs/03-architecture docs/04-ui-ux docs/05-frontend docs/06-backend docs/07-database docs/08-api docs/09-security docs/10-deployment docs/11-testing docs/12-community-engagement docs/13-user-documentation docs/14-release docs/15-final-submission; do
+            test -d "$dir"
+          done
+          find docs -type f -name '*.md' -print0 | xargs -0 -n1 test -r
+
   backend-test:
     name: Backend Lint & Test
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: ./backend
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,10 +48,13 @@ jobs:
         run: npm ci
 
       - name: Generate Prisma Client
-        run: npx prisma generate --schema=src/db/prisma/schema.prisma
+        run: npm run db:generate
 
       - name: Type Check
-        run: npx tsc --noEmit
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint
 
       - name: Run Tests
         run: npm run test
@@ -45,11 +66,9 @@ jobs:
   frontend-test:
     name: Frontend Lint & Test
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: ./frontend
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -59,6 +78,7 @@ jobs:
         with:
           flutter-version: '3.22.0'
           channel: stable
+          cache: true
 
       - name: Install Dependencies
         run: flutter pub get
