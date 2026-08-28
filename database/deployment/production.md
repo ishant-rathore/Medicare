@@ -1,33 +1,25 @@
 # Production / Demo Database Deployment
 
-Production/demo PostgreSQL deployment is controlled by the backend's Prisma migration workflow.
+PostgreSQL production/demo deployment uses the authoritative Prisma migration workflow in `backend/`.
 
 ## Pre-deployment
 
-- Confirm the approved application version and migration state.
-- Confirm `DATABASE_URL` and other configuration are supplied by the deployment environment.
-- Create and verify the required PostgreSQL backup.
-- Confirm the previous-good application/database version is available for recovery.
+- Confirm the approved application version.
+- Confirm the current Prisma migration state.
+- Supply `DATABASE_URL` through secure environment configuration.
+- Complete and verify the required PostgreSQL backup.
+- Confirm the previous-good application/database recovery point.
 
 ## Deployment
 
-From `backend/`:
-
 ```bash
+cd backend
 npm run db:migrate:deploy
 npm run db:generate
 ```
 
-Then run the database verification checks and application smoke tests defined by the release process.
+After migration, run the PostgreSQL verification checks and application release smoke tests.
 
-## Verification
+## Safety
 
-Verify:
-
-- expected schema is present
-- critical constraints and indexes exist
-- backend connects successfully
-- dose-event idempotency is preserved
-- local/offline reminder behavior remains independent of PostgreSQL
-
-Never run development seed data in production/demo.
+Never run development seeds against production/demo. Never commit credentials, production connection strings, or real patient data.
