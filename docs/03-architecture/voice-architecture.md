@@ -990,4 +990,3 @@ SERVER VALIDATION
 POSTGRESQL CANONICAL DATA
 ```
 
-> **Internet failure may delay synchronization, but it must never prevent an already-configured local medication reminder from working.**
