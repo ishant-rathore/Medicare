@@ -10,49 +10,48 @@ import { requireAuth } from '../../middleware/auth.middleware';
 import { ResponseHelper } from '../../shared/response.helper';
 import { sendPushNotification } from '../../config/firebase';
 import { prisma } from '../../config/database';
-import { logger } from '../../config/logger';
 
 const router = Router();
 
 const sendNotificationSchema = z.object({
-  targetUserId: z.string().optional(),
-  title: z.string().min(1).max(200),
-  body: z.string().min(1).max(500),
-  data: z.record(z.string()).optional(),
-});
+  targetUserId: z.string().uuid().optional(),
+  title: z.string().trim().min(1).max(120),
+  body: z.string().trim().min(1).max(300),
+  data: z.record(z.string().max(100)).optional(),
+}).strict();
 
 router.use(requireAuth);
 
-/** POST /api/v1/notifications/send — Send push notification to a user's devices */
 router.post('/send', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const requestingUserId = req.userId!;
     const data = sendNotificationSchema.parse(req.body);
+    const requester = await prisma.user.findUnique({
+      where: { firebaseUid: req.userId! },
+      select: { id: true, isActive: true },
+    });
+    if (!requester || !requester.isActive) return ResponseHelper.notFound(res, 'User');
 
-    const requestingUser = await prisma.user.findUnique({ where: { firebaseUid: requestingUserId } });
-    if (!requestingUser) return ResponseHelper.notFound(res, 'User');
-
-    // If targeting another user, verify caregiver access
-    let targetInternalId = requestingUser.id;
-    if (data.targetUserId && data.targetUserId !== requestingUser.id) {
+    let targetUserId = requester.id;
+    if (data.targetUserId && data.targetUserId !== requester.id) {
       const relation = await prisma.caregiverRelation.findFirst({
-        where: { userId: data.targetUserId, caregiverId: requestingUser.id, isActive: true },
+        where: { userId: data.targetUserId, caregiverId: requester.id, isActive: true },
+        select: { accessLevel: true },
       });
-      if (!relation) return ResponseHelper.forbidden(res, 'No caregiver access to this user');
-      targetInternalId = data.targetUserId;
+      if (!relation || relation.accessLevel !== 'MANAGE') {
+        return ResponseHelper.forbidden(res, 'Caregiver manage permission is required');
+      }
+      targetUserId = data.targetUserId;
     }
 
-    // Get all active device tokens for the target user
     const tokens = await prisma.deviceToken.findMany({
-      where: { userId: targetInternalId, isActive: true },
+      where: { userId: targetUserId, isActive: true },
       select: { token: true },
     });
 
-    if (tokens.length === 0) {
-      return ResponseHelper.ok(res, { sent: 0 }, 'No active devices found');
-    }
+    if (tokens.length === 0) return ResponseHelper.ok(res, { sent: 0, total: 0 }, 'No active devices found');
 
     let sent = 0;
+    let failed = 0;
     for (const { token } of tokens) {
       const success = await sendPushNotification({
         deviceToken: token,
@@ -61,10 +60,10 @@ router.post('/send', async (req: Request, res: Response, next: NextFunction) => 
         data: data.data,
       });
       if (success) sent++;
+      else failed++;
     }
 
-    logger.info('Notifications sent', { targetUserId: targetInternalId, sent, total: tokens.length });
-    ResponseHelper.ok(res, { sent, total: tokens.length });
+    ResponseHelper.ok(res, { sent, failed, total: tokens.length });
   } catch (error) {
     next(error);
   }
