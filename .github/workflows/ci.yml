@@ -74,6 +74,9 @@ jobs:
       - name: Generate Prisma Client
         run: npm run db:generate
 
+      - name: Lint
+        run: npm run lint
+
       - name: Type Check
         run: npm run build
 
