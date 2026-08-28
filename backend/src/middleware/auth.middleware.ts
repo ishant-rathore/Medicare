@@ -11,10 +11,6 @@ import { verifyFirebaseToken } from '../config/firebase';
 import { logger } from '../config/logger';
 import { ResponseHelper } from '../shared/response.helper';
 
-/**
- * Extend Express Request to include authenticated user context.
- * The userId is ALWAYS sourced from the verified Firebase token — never from client input.
- */
 declare global {
   namespace Express {
     interface Request {
@@ -25,10 +21,7 @@ declare global {
   }
 }
 
-/**
- * Require a valid Firebase ID token.
- * Sets req.userId, req.userEmail, req.firebaseUid.
- */
+/** Require a valid Firebase ID token and attach only verified identity. */
 export async function requireAuth(
   req: Request,
   res: Response,
@@ -36,40 +29,43 @@ export async function requireAuth(
 ): Promise<void> {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader?.startsWith('Bearer ')) {
+  if (!authHeader || !/^Bearer\s+\S+$/i.test(authHeader)) {
     ResponseHelper.unauthorized(res, 'Authorization header missing or invalid format');
     return;
   }
 
-  const token = authHeader.split(' ')[1];
-  if (!token) {
-    ResponseHelper.unauthorized(res, 'Bearer token is empty');
-    return;
-  }
+  const token = authHeader.slice(authHeader.indexOf(' ') + 1).trim();
 
-  const decodedToken = await verifyFirebaseToken(token);
-  if (!decodedToken) {
+  try {
+    const decodedToken = await verifyFirebaseToken(token);
+
+    if (!decodedToken?.uid) {
+      ResponseHelper.unauthorized(res, 'Token is invalid or expired');
+      return;
+    }
+
+    // Identity is sourced ONLY from the verified Firebase token.
+    req.userId = decodedToken.uid;
+    req.userEmail = decodedToken.email;
+    req.firebaseUid = decodedToken.uid;
+
+    logger.debug('Authenticated request', {
+      firebaseUid: decodedToken.uid,
+      requestId: req.headers['x-request-id'],
+    });
+
+    next();
+  } catch (error) {
+    // Never expose Firebase verification internals or token material.
+    logger.warn('Firebase authentication failed', {
+      requestId: req.headers['x-request-id'],
+      error: error instanceof Error ? error.message : 'unknown authentication error',
+    });
     ResponseHelper.unauthorized(res, 'Token is invalid or expired');
-    return;
   }
-
-  // Set verified user context — sourced ONLY from the verified token
-  req.userId = decodedToken.uid;
-  req.userEmail = decodedToken.email;
-  req.firebaseUid = decodedToken.uid;
-
-  logger.debug('Auth middleware: user authenticated', {
-    userId: decodedToken.uid,
-    requestId: req.headers['x-request-id'],
-  });
-
-  next();
 }
 
-/**
- * Optional auth — sets user context if token is present, but doesn't block if missing.
- * Use for endpoints that have different behavior for authenticated vs anonymous users.
- */
+/** Optional authentication for endpoints that support anonymous access. */
 export async function optionalAuth(
   req: Request,
   _res: Response,
@@ -77,16 +73,22 @@ export async function optionalAuth(
 ): Promise<void> {
   const authHeader = req.headers.authorization;
 
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.split(' ')[1];
-    if (token) {
-      const decodedToken = await verifyFirebaseToken(token);
-      if (decodedToken) {
-        req.userId = decodedToken.uid;
-        req.userEmail = decodedToken.email;
-        req.firebaseUid = decodedToken.uid;
-      }
+  if (!authHeader || !/^Bearer\s+\S+$/i.test(authHeader)) {
+    next();
+    return;
+  }
+
+  const token = authHeader.slice(authHeader.indexOf(' ') + 1).trim();
+
+  try {
+    const decodedToken = await verifyFirebaseToken(token);
+    if (decodedToken?.uid) {
+      req.userId = decodedToken.uid;
+      req.userEmail = decodedToken.email;
+      req.firebaseUid = decodedToken.uid;
     }
+  } catch {
+    // Optional auth deliberately continues without an authenticated context.
   }
 
   next();
