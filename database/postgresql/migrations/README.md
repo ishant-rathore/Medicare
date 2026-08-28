@@ -1,13 +1,26 @@
 # PostgreSQL Migrations
 
-This directory contains the versioned SQL baseline for the Medicare PostgreSQL database.
+Prisma is the authoritative PostgreSQL schema and production migration mechanism for Medicare.
 
-- Apply migrations in numeric order.
-- Review migrations before production deployment.
-- Do not embed credentials or environment-specific secrets.
-- Prefer transactional DDL where supported.
-- Back up production data before applying schema changes.
+Authoritative schema:
 
-The backend uses Prisma for runtime database access. If Prisma migrations are present, keep them as the authoritative runtime migration mechanism and keep this SQL baseline consistent with the approved database design.
+`backend/src/db/prisma/schema.prisma`
 
-Before release, verify a fresh database can be initialized from the migration set and that backend repositories/tests pass against the resulting schema.
+Deployment command:
+
+`cd backend && npm run db:migrate:deploy`
+
+Prisma migrations, when added to the repository, belong under the Prisma migration directory configured for the backend. Do not create a second SQL migration chain under this directory; doing so would allow the PostgreSQL schema to drift.
+
+`database/postgresql/schema.sql` is a human-readable SQL reference and is not an independent production migration source.
+
+Before production/staging release:
+
+1. Validate the Prisma schema.
+2. Apply the checked-in Prisma migrations to a fresh PostgreSQL database.
+3. Generate/validate Prisma Client.
+4. Run backend integration tests against the migrated database.
+5. Verify critical constraints, especially `dose_events.local_event_id` uniqueness.
+6. Back up production data before schema changes.
+
+Never embed credentials, secrets, or environment-specific connection strings in migrations.
