@@ -1,6 +1,6 @@
 // =============================================================================
 // backend/src/modules/dose-events/dose-events.repository.ts
-// Dose events repository — uses upsert on localEventId for idempotency
+// Persistence boundary for dose events.
 // =============================================================================
 
 import { Prisma } from '@prisma/client';
@@ -9,11 +9,27 @@ import { prisma } from '../../config/database';
 import { CreateDoseEventDto, DoseHistoryQuery, UpdateDoseEventDto } from './dose-events.types';
 
 export const DoseEventsRepository = {
-  /**
-   * Idempotent create-or-update using localEventId.
-   * If an event with this localEventId already exists, it will NOT be duplicated.
-   * This is the core protection against double-sync of offline events.
-   */
+  async create(userId: string, data: CreateDoseEventDto) {
+    return prisma.doseEvent.create({
+      data: {
+        localEventId: data.localEventId,
+        userId,
+        medicineId: data.medicineId,
+        reminderId: data.reminderId,
+        medicineName: data.medicineName,
+        dosage: data.dosage,
+        mealTiming: data.mealTiming as never,
+        scheduledTime: data.scheduledTime,
+        scheduledDate: new Date(`${data.scheduledDate}T00:00:00.000Z`),
+        status: data.status as never,
+        actionAt: data.actionAt ? new Date(data.actionAt) : undefined,
+        snoozeUntil: data.snoozeUntil ? new Date(data.snoozeUntil) : undefined,
+        spokenScript: data.spokenScript,
+        notes: data.notes,
+      },
+    });
+  },
+
   async upsertByLocalEventId(userId: string, data: CreateDoseEventDto) {
     return prisma.doseEvent.upsert({
       where: { localEventId: data.localEventId },
@@ -26,7 +42,7 @@ export const DoseEventsRepository = {
         dosage: data.dosage,
         mealTiming: data.mealTiming as never,
         scheduledTime: data.scheduledTime,
-        scheduledDate: new Date(data.scheduledDate),
+        scheduledDate: new Date(`${data.scheduledDate}T00:00:00.000Z`),
         status: (data.status ?? 'PENDING') as never,
         actionAt: data.actionAt ? new Date(data.actionAt) : undefined,
         snoozeUntil: data.snoozeUntil ? new Date(data.snoozeUntil) : undefined,
@@ -34,7 +50,6 @@ export const DoseEventsRepository = {
         notes: data.notes,
       },
       update: {
-        // Only update status and action fields — do not overwrite existing server data
         status: (data.status ?? 'PENDING') as never,
         actionAt: data.actionAt ? new Date(data.actionAt) : undefined,
         snoozeUntil: data.snoozeUntil ? new Date(data.snoozeUntil) : undefined,
@@ -51,8 +66,8 @@ export const DoseEventsRepository = {
   },
 
   async updateStatus(id: string, userId: string, data: UpdateDoseEventDto) {
-    return prisma.doseEvent.update({
-      where: { id },
+    return prisma.doseEvent.updateMany({
+      where: { id, userId },
       data: {
         status: data.status as never,
         actionAt: data.actionAt ? new Date(data.actionAt) : undefined,
@@ -69,8 +84,8 @@ export const DoseEventsRepository = {
 
     const where: Prisma.DoseEventWhereInput = {
       userId,
-      ...(startDate ? { scheduledDate: { gte: new Date(startDate) } } : {}),
-      ...(endDate ? { scheduledDate: { lte: new Date(endDate) } } : {}),
+      ...(startDate ? { scheduledDate: { gte: new Date(`${startDate}T00:00:00.000Z`) } } : {}),
+      ...(endDate ? { scheduledDate: { lte: new Date(`${endDate}T23:59:59.999Z`) } } : {}),
       ...(medicineId ? { medicineId } : {}),
       ...(status ? { status: status as never } : {}),
     };
@@ -89,16 +104,12 @@ export const DoseEventsRepository = {
   },
 
   async findTodayEvents(userId: string, date: Date) {
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
+    const dateValue = date.toISOString().slice(0, 10);
+    const startOfDay = new Date(`${dateValue}T00:00:00.000Z`);
+    const endOfDay = new Date(`${dateValue}T23:59:59.999Z`);
 
     return prisma.doseEvent.findMany({
-      where: {
-        userId,
-        scheduledDate: { gte: startOfDay, lte: endOfDay },
-      },
+      where: { userId, scheduledDate: { gte: startOfDay, lte: endOfDay } },
       orderBy: { scheduledTime: 'asc' },
     });
   },
