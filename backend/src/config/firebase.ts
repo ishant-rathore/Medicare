@@ -21,19 +21,32 @@ export function getFirebaseApp(): admin.app.App {
   }
 
   try {
+    // Firebase is required for authenticated backend operations. Fail with a
+    // clear configuration error rather than allowing an undefined credential
+    // to reach the Admin SDK.
+    const privateKey = env.FIREBASE_PRIVATE_KEY;
+    const projectId = env.FIREBASE_PROJECT_ID;
+    const clientEmail = env.FIREBASE_CLIENT_EMAIL;
+
+    if (!privateKey || !projectId || !clientEmail) {
+      throw new Error(
+        'Firebase configuration is incomplete: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY are required',
+      );
+    }
+
     // Replace escaped newlines in private key (common in environment variables)
-    const privateKey = env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
+    const normalizedPrivateKey = privateKey.replace(/\\n/g, '\n');
 
     _app = admin.initializeApp({
       credential: admin.credential.cert({
-        projectId: env.FIREBASE_PROJECT_ID,
-        clientEmail: env.FIREBASE_CLIENT_EMAIL,
-        privateKey,
+        projectId,
+        clientEmail,
+        privateKey: normalizedPrivateKey,
       }),
       storageBucket: env.FIREBASE_STORAGE_BUCKET,
     });
 
-    logger.info('Firebase Admin SDK initialized', { projectId: env.FIREBASE_PROJECT_ID });
+    logger.info('Firebase Admin SDK initialized', { projectId });
     return _app;
   } catch (error) {
     logger.error('Failed to initialize Firebase Admin SDK', error);
