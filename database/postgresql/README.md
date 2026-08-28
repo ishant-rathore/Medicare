@@ -1,25 +1,38 @@
 # PostgreSQL Database
 
-PostgreSQL is Medicare's canonical cloud database. It is accessed by the Node.js/Express/TypeScript backend, not directly by the Flutter application.
+PostgreSQL is Medicare's canonical cloud database. It is accessed only by the Node.js/Express/TypeScript backend.
+
+## Authority
+
+`backend/src/db/prisma/schema.prisma` is the authoritative PostgreSQL schema.
+
+`backend/src/db/prisma/migrations/` is the authoritative production migration history.
+
+`database/postgresql/schema.sql` is a human-readable SQL reference/export and MUST NOT be treated as a competing migration source.
 
 ## Deployment
 
-Use the repository's existing Prisma migration workflow for backend runtime deployment when Prisma migrations are present. The SQL migration under `migrations/` provides the reproducible baseline/reference for this database package.
+From `backend/`:
 
-Before staging or production deployment:
+```bash
+npm run db:generate
+npm run db:migrate:deploy
+```
 
-- Verify the target PostgreSQL instance and credentials are supplied through environment configuration.
-- Back up production data according to the deployed infrastructure's approved process.
-- Apply migrations in order.
-- Run schema/backend integration tests and smoke tests.
-- Record the resulting application and migration versions.
+Before staging or production/demo deployment:
 
-Never commit credentials, service-account keys, or production connection strings.
+- Verify the target PostgreSQL instance and credentials are supplied through secure environment configuration.
+- Back up production data according to the approved infrastructure process.
+- Apply the checked-in Prisma migrations.
+- Run database verification and backend integration/smoke tests.
+- Record the application version and migration state.
 
 ## Data integrity
 
-The schema uses foreign keys, state constraints, indexes, and unique identifiers needed for medication ownership and synchronization. `dose_events.local_event_id` must remain unique so retries cannot create duplicate offline dose events.
+Critical synchronization and ownership constraints must remain enforced, including unique `dose_events.local_event_id`, caregiver relationship uniqueness, refill-rule uniqueness, device-token uniqueness, and foreign-key relationships.
 
 ## Recovery
 
-Do not manually edit production schema/data to work around a failed migration. Stop the rollout, preserve the failure evidence, and use the previous-good application/database version and provider-supported restore/recovery procedure.
+Do not manually edit production schema/data to bypass a failed migration. Stop the rollout, preserve failure evidence, and use the approved backup/restore or previous-good-version recovery procedure.
+
+Never commit credentials, service-account keys, or production connection strings.
