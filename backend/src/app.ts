@@ -30,20 +30,26 @@ export function createApp(): Express {
   const app = express();
   const env = getEnv();
 
+  // Do not expose Express implementation details.
+  app.disable('x-powered-by');
+
   // ─── Security headers ─────────────────────────────────────────────────────
   app.use(helmet());
 
   // ─── CORS ─────────────────────────────────────────────────────────────────
-  const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map((o) => o.trim());
+  const allowedOrigins = env.ALLOWED_ORIGINS.split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
   app.use(
     cors({
       origin: (origin, callback) => {
-        // Allow requests with no origin (mobile apps, Postman)
+        // Mobile clients commonly omit the Origin header.
         if (!origin || allowedOrigins.includes(origin)) {
           callback(null, true);
-        } else {
-          callback(new Error(`Origin ${origin} not allowed by CORS`));
+          return;
         }
+        callback(new Error('Origin not allowed by CORS'));
       },
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
@@ -52,9 +58,10 @@ export function createApp(): Express {
     }),
   );
 
-  // ─── Request parsing ───────────────────────────────────────────────────────
-  app.use(express.json({ limit: '25mb' }));
-  app.use(express.urlencoded({ extended: true }));
+  // ─── Request parsing ─────────────────────────────────────────────────────
+  // Media is handled through the dedicated upload flow; JSON should remain small.
+  app.use(express.json({ limit: '1mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
   // ─── Request ID ───────────────────────────────────────────────────────────
   app.use(requestIdMiddleware);
@@ -64,7 +71,6 @@ export function createApp(): Express {
     app.use(
       morgan('combined', {
         stream: { write: (msg) => logger.http(msg.trim()) },
-        // Skip health check logs
         skip: (req) => req.url === '/api/v1/health',
       }),
     );
