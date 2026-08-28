@@ -1,15 +1,21 @@
-# Database Deployment Scripts
+# Database Scripts
 
-Deployment scripts belong here when they are required by the repository's supported environments.
+This directory documents the repository-supported database deployment and validation commands.
 
-Expected capabilities:
+## PostgreSQL
 
-- Apply PostgreSQL migrations safely.
-- Validate PostgreSQL migration ordering/schema.
-- Initialize and validate SQLite migrations.
-- Support deployment verification without hard-coded credentials.
-- Fail fast on missing required environment configuration.
+Prisma is the authoritative runtime migration mechanism:
 
-Prefer the existing backend/Prisma migration commands for PostgreSQL when available rather than maintaining a second runtime migration engine. Infrastructure-specific backup commands should remain in deployment documentation unless they are implemented and tested for the target provider.
+```bash
+cd backend
+npm run db:generate
+npm run db:migrate:deploy
+```
 
-Never commit database passwords, tokens, Firebase service credentials, or production connection strings.
+Do not add a second PostgreSQL migration runner here. Use the verification SQL under `database/postgresql/verification/` after migrations are applied.
+
+## SQLite
+
+SQLite initialization and upgrades remain owned by the Flutter `DatabaseService`. Validate them through the Flutter runtime and tests rather than introducing a competing migration engine.
+
+All environment-specific values, including `DATABASE_URL`, must come from environment configuration and must never be hard-coded.
