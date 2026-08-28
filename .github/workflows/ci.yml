@@ -57,7 +57,7 @@ jobs:
         run: npm test
         env:
           NODE_ENV: test
-          JWT_SECRET: dummy_secret_for_tests
+          JWT_SECRET: test_secret_for_medicare_unit_tests_123456
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/medicare_test
 
   frontend-test:
