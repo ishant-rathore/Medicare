@@ -7,9 +7,12 @@ import { AuthorizationError, NotFoundError } from '../../shared/errors/app-error
 import { prisma } from '../../config/database';
 
 export const CaregiversService = {
-  async getOwner(userId: string) {
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
-    if (!user) throw new NotFoundError('User');
+  async getOwnerByFirebaseUid(firebaseUid: string) {
+    const user = await prisma.user.findUnique({
+      where: { firebaseUid },
+      select: { id: true, isActive: true },
+    });
+    if (!user || !user.isActive) throw new AuthorizationError('Authenticated user profile is not active');
     return user;
   },
 
@@ -30,7 +33,7 @@ export const CaregiversService = {
     notifyOnLowStock: boolean;
   }) {
     const caregiver = await prisma.user.findUnique({
-      where: { email: data.caregiverEmail },
+      where: { email: data.caregiverEmail.trim().toLowerCase() },
       select: { id: true, isActive: true },
     });
     if (!caregiver) throw new NotFoundError('Caregiver user');
@@ -79,8 +82,7 @@ export const CaregiversService = {
 
     if (!relation) throw new AuthorizationError('You do not have caregiver access to this user');
 
-    const today = new Date();
-    const dateValue = today.toISOString().slice(0, 10);
+    const dateValue = new Date().toISOString().slice(0, 10);
     const startOfDay = new Date(`${dateValue}T00:00:00.000Z`);
     const endOfDay = new Date(`${dateValue}T23:59:59.999Z`);
 
