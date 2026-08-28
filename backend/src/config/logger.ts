@@ -32,7 +32,6 @@ export function getLogger(): winston.Logger {
     level: env.LOG_LEVEL,
     format: env.NODE_ENV === 'production' ? productionFormat : developmentFormat,
     transports: [new winston.transports.Console()],
-    // Never log these fields
     defaultMeta: { service: 'medicare-api' },
   });
 
