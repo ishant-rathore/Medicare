@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 
+import * as firebase from '../config/firebase';
 import { requireAuth } from '../middleware/auth.middleware';
-import { verifyFirebaseToken } from '../config/firebase';
 import { ResponseHelper } from '../shared/response.helper';
 
 afterEach(() => {
@@ -56,23 +56,19 @@ describe('Auth Middleware', () => {
 
   it('returns 401 when Firebase token verification fails', async () => {
     req.headers.authorization = 'Bearer invalid_token';
-    jest.spyOn(ResponseHelper, 'unauthorized').mockReturnValue(res);
-    const verify = jest.spyOn(require('../config/firebase'), 'verifyFirebaseToken')
-      .mockResolvedValue(null);
+    const unauthorized = jest.spyOn(ResponseHelper, 'unauthorized').mockReturnValue(res);
+    const verify = jest.spyOn(firebase, 'verifyFirebaseToken').mockResolvedValue(null);
 
     await requireAuth(req, res, next);
 
     expect(verify).toHaveBeenCalledWith('invalid_token');
-    expect(ResponseHelper.unauthorized).toHaveBeenCalledWith(
-      res,
-      'Token is invalid or expired',
-    );
+    expect(unauthorized).toHaveBeenCalledWith(res, 'Token is invalid or expired');
     expect(next).not.toHaveBeenCalled();
   });
 
   it('attaches verified Firebase identity and calls next', async () => {
     req.headers.authorization = 'Bearer valid_token';
-    jest.spyOn(require('../config/firebase'), 'verifyFirebaseToken').mockResolvedValue({
+    jest.spyOn(firebase, 'verifyFirebaseToken').mockResolvedValue({
       uid: 'user123',
       email: 'test@example.com',
     } as never);
