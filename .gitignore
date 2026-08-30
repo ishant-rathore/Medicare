@@ -59,27 +59,9 @@ frontend/coverage/
 # -----------------------------------------------------------------------------
 # ANDROID
 # -----------------------------------------------------------------------------
-*.iml
-.gradle/
-local.properties
-.idea/workspace.xml
-.idea/libraries
-.DS_Store
-captures/
-.externalNativeBuild/
-.cxx/
-*.apk
-*.aab
-*.ipa
-*.dSYM.zip
-*.dSYM
-**/android/app/release/
-**/android/app/debug/
+
 
 # Android keystore (NEVER commit)
-*.jks
-*.keystore
-key.properties
 
 # -----------------------------------------------------------------------------
 # FIREBASE
@@ -92,8 +74,6 @@ key.properties
 # -----------------------------------------------------------------------------
 # DOCKER
 # -----------------------------------------------------------------------------
-.docker/
-docker-data/
 
 # -----------------------------------------------------------------------------
 # EDITORS / IDEs
