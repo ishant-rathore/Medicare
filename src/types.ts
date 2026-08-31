@@ -71,7 +71,11 @@ export interface Medicine {
   customVoiceScript?: string;
 }
 
+<<<<<<< HEAD
 export type DoseStatus = 'pending' | 'due' | 'taken' | 'snoozed' | 'missed' | 'skipped';
+=======
+export type DoseStatus = 'pending' | 'taken' | 'snoozed' | 'missed' | 'skipped';
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 
 export interface DoseEvent {
   id: string;
@@ -87,8 +91,12 @@ export interface DoseEvent {
   period: 'Morning' | 'Afternoon' | 'Evening' | 'Night';
   status: DoseStatus;
   actionTimestamp?: string; // ISO string when taken/snoozed/skipped
+<<<<<<< HEAD
   actualTakenTime?: string; // e.g. "08:05 AM"
   snoozeUntil?: string; // ISO timestamp for snoozed alarm
+=======
+  snoozeUntil?: string;
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
   spokenScript: string;
   photoUrl?: string;
   notes?: string;

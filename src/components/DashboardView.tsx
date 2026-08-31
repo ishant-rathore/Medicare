@@ -50,6 +50,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const remainingCount = totalCount - takenCount;
   const adherencePercentage = Math.round((takenCount / totalCount) * 100);
 
+<<<<<<< HEAD
   // Helper to parse time to minutes
   const parseTimeToMinutes = (timeStr: string): number => {
     if (!timeStr) return 0;
@@ -73,11 +74,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   });
 
   const nextPendingDose = sortedPending.find((d) => parseTimeToMinutes(d.scheduledTime) >= currentMinutes) || sortedPending[0] || todayDoses[0];
+=======
+  // Find next pending reminder
+  const nextPendingDose = todayDoses.find((d) => d.status === 'pending') || todayDoses[0];
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 
   // Dynamic greeting based on current time
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
+<<<<<<< HEAD
   // Live countdown timer based on next pending dose
   useEffect(() => {
     const updateCountdown = () => {
@@ -109,6 +115,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
   }, [nextPendingDose]);
+=======
+  // Live countdown timer simulation
+  useEffect(() => {
+    let secondsLeft = 48 * 60 + 32;
+    const interval = setInterval(() => {
+      secondsLeft = Math.max(0, secondsLeft - 1);
+      const h = String(Math.floor(secondsLeft / 3600)).padStart(2, '0');
+      const m = String(Math.floor((secondsLeft % 3600) / 60)).padStart(2, '0');
+      const s = String(secondsLeft % 60).padStart(2, '0');
+      setCountdown(`${h}:${m}:${s}`);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 
   const handleSpeakNextReminder = () => {
     if (!nextPendingDose) return;

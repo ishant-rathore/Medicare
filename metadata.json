@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "Medicare V3",
   "description": "Voice Reminders & Smart Health Companion for Senior Citizens",
   "requestFramePermissions": [
@@ -9,3 +10,10 @@
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]
 }
+=======
+  "name": "Medicare - Voice Medication Reminder",
+  "description": "Senior-friendly voice-first medication reminder and health tracking companion with high contrast, regional audio alerts, AI prescription scanning, and caregiver monitoring.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba

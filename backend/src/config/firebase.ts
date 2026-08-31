@@ -3,14 +3,19 @@
 // Firebase Admin SDK initialization
 // =============================================================================
 
+<<<<<<< HEAD
 import { initializeApp, getApps, cert, App } from 'firebase-admin/app';
 import { getAuth, DecodedIdToken } from 'firebase-admin/auth';
 import { getMessaging } from 'firebase-admin/messaging';
 import { getStorage, Storage } from 'firebase-admin/storage';
+=======
+import * as admin from 'firebase-admin';
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 
 import { getEnv } from './environment';
 import { logger } from './logger';
 
+<<<<<<< HEAD
 let _app: App | null = null;
 
 export function getFirebaseApp(): App | null {
@@ -19,10 +24,22 @@ export function getFirebaseApp(): App | null {
   const existingApps = getApps();
   if (existingApps.length > 0) {
     _app = existingApps[0]!;
+=======
+let _app: admin.app.App | null = null;
+
+export function getFirebaseApp(): admin.app.App {
+  if (_app) return _app;
+
+  const env = getEnv();
+
+  if (admin.apps.length > 0) {
+    _app = admin.apps[0]!;
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
     return _app;
   }
 
   try {
+<<<<<<< HEAD
     const projectId = process.env.FIREBASE_PROJECT_ID;
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
     const rawKey = process.env.FIREBASE_PRIVATE_KEY;
@@ -51,11 +68,44 @@ export function getFirebaseApp(): App | null {
   } catch (error) {
     logger.warn('Firebase Admin SDK initialization notice:', error);
     return null;
+=======
+    // Firebase is required for authenticated backend operations. Fail with a
+    // clear configuration error rather than allowing an undefined credential
+    // to reach the Admin SDK.
+    const privateKey = env.FIREBASE_PRIVATE_KEY;
+    const projectId = env.FIREBASE_PROJECT_ID;
+    const clientEmail = env.FIREBASE_CLIENT_EMAIL;
+
+    if (!privateKey || !projectId || !clientEmail) {
+      throw new Error(
+        'Firebase configuration is incomplete: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY are required',
+      );
+    }
+
+    // Replace escaped newlines in private key (common in environment variables)
+    const normalizedPrivateKey = privateKey.replace(/\\n/g, '\n');
+
+    _app = admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId,
+        clientEmail,
+        privateKey: normalizedPrivateKey,
+      }),
+      storageBucket: env.FIREBASE_STORAGE_BUCKET,
+    });
+
+    logger.info('Firebase Admin SDK initialized', { projectId });
+    return _app;
+  } catch (error) {
+    logger.error('Failed to initialize Firebase Admin SDK', error);
+    throw error;
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
   }
 }
 
 /**
  * Verify a Firebase ID token and return the decoded token.
+<<<<<<< HEAD
  * Returns null if the token is invalid or expired.
  */
 export async function verifyFirebaseToken(
@@ -106,6 +156,18 @@ export async function verifyFirebaseToken(
     return null;
   } catch (err: any) {
     logger.warn('Firebase token verification rejected:', err?.message || err);
+=======
+ * Returns null if the token is invalid.
+ */
+export async function verifyFirebaseToken(
+  token: string,
+): Promise<admin.auth.DecodedIdToken | null> {
+  try {
+    const app = getFirebaseApp();
+    const decodedToken = await admin.auth(app).verifyIdToken(token, true);
+    return decodedToken;
+  } catch {
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
     return null;
   }
 }
@@ -121,8 +183,12 @@ export async function sendPushNotification(params: {
 }): Promise<boolean> {
   try {
     const app = getFirebaseApp();
+<<<<<<< HEAD
     if (!app) return false;
     await getMessaging(app).send({
+=======
+    await admin.messaging(app).send({
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
       token: params.deviceToken,
       notification: {
         title: params.title,
@@ -149,8 +215,14 @@ export async function sendPushNotification(params: {
 /**
  * Get Firebase Storage bucket for media uploads.
  */
+<<<<<<< HEAD
 export function getStorageBucket(): Storage | null {
   const app = getFirebaseApp();
   if (!app) return null;
   return getStorage(app);
+=======
+export function getStorageBucket(): admin.storage.Storage {
+  const app = getFirebaseApp();
+  return admin.storage(app);
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 }

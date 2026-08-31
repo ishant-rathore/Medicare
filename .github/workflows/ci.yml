@@ -2,17 +2,46 @@ name: Medicare CI Pipeline
 
 on:
   push:
+<<<<<<< HEAD
     branches: [ main ]
   pull_request:
     branches: [ main ]
 
 jobs:
+=======
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  documentation:
+    name: Documentation Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate documentation files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f docs/README.md
+          for dir in docs/01-project docs/02-requirements docs/03-architecture docs/04-ui-ux docs/05-frontend docs/06-backend docs/07-database docs/08-api docs/09-security docs/10-deployment docs/11-testing docs/12-community-engagement docs/13-user-documentation docs/14-release docs/15-final-submission; do
+            test -d "$dir"
+          done
+          find docs -type f -name '*.md' -print0 | xargs -0 -n1 test -r
+
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
   backend-test:
     name: Backend Lint & Test
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./backend
+<<<<<<< HEAD
 
     steps:
     - uses: actions/checkout@v3
@@ -36,6 +65,61 @@ jobs:
         NODE_ENV: test
         JWT_SECRET: dummy_secret_for_tests
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/medicare_test
+=======
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: medicare_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d medicare_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: npm
+          cache-dependency-path: ./backend/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Validate Prisma schema
+        run: npx prisma validate --schema=src/db/prisma/schema.prisma
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/medicare_test
+
+      - name: Apply Prisma migrations to fresh PostgreSQL
+        run: npm run db:migrate:deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/medicare_test
+
+      - name: Generate Prisma Client
+        run: npm run db:generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type Check
+        run: npm run build
+
+      - name: Run Tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test_secret_for_medicare_unit_tests_123456
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/medicare_test
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 
   frontend-test:
     name: Frontend Lint & Test
@@ -43,6 +127,7 @@ jobs:
     defaults:
       run:
         working-directory: ./frontend
+<<<<<<< HEAD
 
     steps:
     - uses: actions/checkout@v3
@@ -64,3 +149,27 @@ jobs:
       
     - name: Run Tests
       run: flutter test
+=======
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.0'
+          channel: stable
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Check Formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze Code
+        run: flutter analyze
+
+      - name: Run Tests
+        run: flutter test
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba

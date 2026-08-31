@@ -19,18 +19,25 @@ import {
   saveMedicines,
   getTodayDoses,
   saveTodayDoses,
+<<<<<<< HEAD
   syncDosesWithMedicines,
   recordDoseAction,
+=======
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
   getEmergencyContacts,
   saveEmergencyContacts,
   getAccessibilitySettings,
   saveAccessibilitySettings,
   resetToInitialSeedData,
 } from './utils/storage';
+<<<<<<< HEAD
 import { reminderService } from './services/reminderService';
 import { playTapSound, speakText } from './utils/audio';
 import { onFirebaseAuthStateChanged, logoutFirebase, AuthSession, isDemoMode, setDemoMode } from './services/firebaseAuth';
 import { apiClient } from './services/apiClient';
+=======
+import { playTapSound, speakText } from './utils/audio';
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 
 // Components
 import { TopHeader, BottomNavbar, FloatingVoiceButton } from './components/Navigation';
@@ -62,14 +69,21 @@ export default function App() {
   // Navigation State
   const [currentView, setCurrentView] = useState<AppView>('splash');
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+<<<<<<< HEAD
   const [authSession, setAuthSession] = useState<AuthSession | null>(null);
+=======
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 
   // Application Data State
   const [user, setUser] = useState<UserProfile>(getUserProfile);
   const [medicines, setMedicines] = useState<Medicine[]>(getMedicines);
+<<<<<<< HEAD
   const [doses, setDoses] = useState<DoseEvent[]>(() =>
     syncDosesWithMedicines(getMedicines(), getUserProfile())
   );
+=======
+  const [doses, setDoses] = useState<DoseEvent[]>(getTodayDoses);
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
   const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>(getEmergencyContacts);
   const [settings, setSettings] = useState<AccessibilitySettings>(getAccessibilitySettings);
 
@@ -83,6 +97,7 @@ export default function App() {
   const [showSOSModal, setShowSOSModal] = useState(false);
   const [showVoiceAssistant, setShowVoiceAssistant] = useState(false);
 
+<<<<<<< HEAD
   // Real Firebase Authentication session listener & persistent session recovery
   useEffect(() => {
     // If persistent Demo Mode is active, initialize demo session directly without contacting Firebase
@@ -165,6 +180,8 @@ export default function App() {
     };
   }, []);
 
+=======
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
   // Sync state to local storage
   useEffect(() => {
     saveUserProfile(user);
@@ -224,6 +241,7 @@ export default function App() {
 
   // Dose toggle handler
   const handleToggleDoseStatus = (doseId: string) => {
+<<<<<<< HEAD
     const current = doses.find((d) => d.id === doseId);
     if (!current) return;
 
@@ -235,10 +253,29 @@ export default function App() {
     }
     setDoses(getTodayDoses());
     setMedicines(getMedicines());
+=======
+    setDoses((prev) =>
+      prev.map((d) => {
+        if (d.id === doseId) {
+          const newStatus = d.status === 'taken' ? 'pending' : 'taken';
+          if (newStatus === 'taken') {
+            speakText(`Great job! ${d.medicineName} marked as taken.`, { volume: 'loud' });
+          }
+          return {
+            ...d,
+            status: newStatus,
+            actualTakenTime: newStatus === 'taken' ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
+          };
+        }
+        return d;
+      })
+    );
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
   };
 
   // Medicine management handlers
   const handleSaveMedicine = (newOrUpdated: Medicine) => {
+<<<<<<< HEAD
     const currentMeds = getMedicines();
     const exists = currentMeds.find((m) => m.id === newOrUpdated.id);
     const updatedMeds = exists
@@ -263,10 +300,52 @@ export default function App() {
 
     const syncedDoses = syncDosesWithMedicines(updatedMeds, user);
     setDoses(syncedDoses);
+=======
+    setMedicines((prev) => {
+      const exists = prev.find((m) => m.id === newOrUpdated.id);
+      if (exists) {
+        return prev.map((m) => (m.id === newOrUpdated.id ? newOrUpdated : m));
+      }
+      return [newOrUpdated, ...prev];
+    });
+
+    // Also update today's doses if needed
+    const times = newOrUpdated.times || ['08:00 AM'];
+    const today = new Date().toISOString().split('T')[0];
+    const newDoses: DoseEvent[] = times.map((t, i) => {
+      const period = t.includes('AM') ? 'Morning' : t.includes('02:00') ? 'Afternoon' : t.includes('08:00') ? 'Evening' : 'Night';
+      return {
+        id: `dose_${newOrUpdated.id}_${i}`,
+        medicineId: newOrUpdated.id,
+        medicineName: newOrUpdated.name,
+        medicineType: newOrUpdated.type,
+        dosage: newOrUpdated.dosage,
+        pillColor: newOrUpdated.color,
+        pillShape: newOrUpdated.shape,
+        mealTiming: newOrUpdated.mealTiming,
+        scheduledTime: t,
+        scheduledDate: today,
+        period: period as any,
+        status: 'pending',
+        spokenScript: `${user.nickname || 'Grandpa'}, it is ${t}. Please take your ${newOrUpdated.color.toLowerCase()} ${newOrUpdated.name} ${newOrUpdated.dosage}, ${newOrUpdated.mealTiming.toLowerCase()}.`,
+        synced: true,
+      };
+    });
+
+    setDoses((prev) => [...newDoses, ...prev.filter((d) => d.medicineId !== newOrUpdated.id)]);
+    setEditingMedicine(null);
+    setCurrentView('medicines');
+  };
+
+  const handleDeleteMedicine = (medId: string) => {
+    setMedicines((prev) => prev.filter((m) => m.id !== medId));
+    setDoses((prev) => prev.filter((d) => d.medicineId !== medId));
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
     speakText('Medicine removed.');
   };
 
   const handleRefillStock = (medId: string, addedCount: number = 30) => {
+<<<<<<< HEAD
     setMedicines((prev) => {
       const updated = prev.map((m) => (m.id === medId ? { ...m, stockCount: m.stockCount + addedCount } : m));
       saveMedicines(updated);
@@ -282,6 +361,15 @@ export default function App() {
 
     const syncedDoses = syncDosesWithMedicines(updatedMeds, user);
     setDoses(syncedDoses);
+=======
+    setMedicines((prev) =>
+      prev.map((m) => (m.id === medId ? { ...m, stockCount: m.stockCount + addedCount } : m))
+    );
+  };
+
+  const handleAddExtractedFromPrescription = (newMeds: Medicine[]) => {
+    newMeds.forEach((m) => handleSaveMedicine(m));
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
     setCurrentView('medicines');
   };
 
@@ -365,6 +453,7 @@ export default function App() {
                 if (profileUpdate) {
                   setUser((prev) => ({ ...prev, ...profileUpdate }));
                 }
+<<<<<<< HEAD
                 if (isDemoMode()) {
                   setAuthSession({
                     user: null,
@@ -375,6 +464,8 @@ export default function App() {
                     isDemo: true,
                   });
                 }
+=======
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
                 setCurrentView('dashboard');
               }}
             />
@@ -467,6 +558,7 @@ export default function App() {
             <ReminderScheduleView
               medicine={schedulingMedicine || selectedMedicine || medicines[0]}
               onSaveSchedule={(medId, times, freq) => {
+<<<<<<< HEAD
                 const currentMeds = getMedicines();
                 const updatedMeds = currentMeds.map((m) =>
                   m.id === medId ? { ...m, times, frequency: freq } : m
@@ -477,6 +569,12 @@ export default function App() {
                 setDoses(syncedDoses);
                 setCurrentView('medicines');
                 speakText('Medication schedule updated.');
+=======
+                setMedicines((prev) =>
+                  prev.map((m) => (m.id === medId ? { ...m, times, frequency: freq } : m))
+                );
+                setCurrentView('medicines');
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
               }}
               onCancel={() => setCurrentView('medicines')}
             />
@@ -579,7 +677,10 @@ export default function App() {
               onUpdateUser={setUser}
               onNavigate={setCurrentView}
               onResetData={handleResetData}
+<<<<<<< HEAD
               onLogout={handleLogout}
+=======
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
             />
           )}
         </main>
@@ -600,6 +701,7 @@ export default function App() {
             dose={activeAlarmDose}
             user={user}
             onTaken={(doseId) => {
+<<<<<<< HEAD
               reminderService.takeDose(doseId);
               setDoses(getTodayDoses());
               setMedicines(getMedicines());
@@ -613,6 +715,22 @@ export default function App() {
             onSkip={(doseId) => {
               reminderService.skipDose(doseId);
               setDoses(getTodayDoses());
+=======
+              handleToggleDoseStatus(doseId);
+              setActiveAlarmDose(null);
+            }}
+            onSnooze={(_doseId, mins) => {
+              setActiveAlarmDose(null);
+              setTimeout(() => {
+                const refreshed = doses.find((d) => d.id === _doseId) || activeAlarmDose;
+                setActiveAlarmDose(refreshed);
+              }, mins * 60 * 1000);
+            }}
+            onSkip={(doseId) => {
+              setDoses((prev) =>
+                prev.map((d) => (d.id === doseId ? { ...d, status: 'missed' } : d))
+              );
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
               setActiveAlarmDose(null);
             }}
             onClose={() => setActiveAlarmDose(null)}
@@ -628,7 +746,11 @@ export default function App() {
           />
         )}
 
+<<<<<<< HEAD
         {/* Global Medicare Voice Assistant Modal */}
+=======
+        {/* Global Gemini Voice Assistant Modal */}
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
         {showVoiceAssistant && (
           <VoiceAssistantModal
             user={user}
@@ -636,6 +758,7 @@ export default function App() {
             medicines={medicines}
             onClose={() => setShowVoiceAssistant(false)}
             onDoseAction={(action, doseId) => {
+<<<<<<< HEAD
               if (action === 'mark_taken') {
                 if (doseId) {
                   handleToggleDoseStatus(doseId);
@@ -678,6 +801,15 @@ export default function App() {
               } else if (action === 'open_analytics') {
                 setCurrentView('analytics');
                 setShowVoiceAssistant(false);
+=======
+              if (action === 'mark_taken' && doseId) {
+                handleToggleDoseStatus(doseId);
+              } else if (action === 'trigger_alarm') {
+                const pending = doses.find((d) => d.status === 'pending') || doses[0];
+                setActiveAlarmDose(pending);
+              } else if (action === 'trigger_sos') {
+                setShowSOSModal(true);
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
               }
             }}
           />

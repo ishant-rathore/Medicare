@@ -22,6 +22,7 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
+<<<<<<< HEAD
   },
   "include": [
     "src/**/*",
@@ -33,4 +34,7 @@
     "dist",
     "backend"
   ]
+=======
+  }
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 }

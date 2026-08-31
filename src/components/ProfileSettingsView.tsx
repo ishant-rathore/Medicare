@@ -28,7 +28,10 @@ interface ProfileSettingsViewProps {
   onUpdateUser: (newUser: UserProfile) => void;
   onNavigate: (view: AppView) => void;
   onResetData: () => void;
+<<<<<<< HEAD
   onLogout?: () => void;
+=======
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 }
 
 export const ProfileSettingsView: React.FC<ProfileSettingsViewProps> = ({
@@ -38,7 +41,10 @@ export const ProfileSettingsView: React.FC<ProfileSettingsViewProps> = ({
   onUpdateUser,
   onNavigate,
   onResetData,
+<<<<<<< HEAD
   onLogout,
+=======
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 }) => {
   const [localSettings, setLocalSettings] = useState<AccessibilitySettings>(settings);
   const [showToast, setShowToast] = useState(false);
@@ -296,6 +302,7 @@ export const ProfileSettingsView: React.FC<ProfileSettingsViewProps> = ({
           <span>→</span>
         </button>
 
+<<<<<<< HEAD
         {onLogout && (
           <button
             id="btn-settings-logout"
@@ -324,6 +331,19 @@ export const ProfileSettingsView: React.FC<ProfileSettingsViewProps> = ({
         >
           <RotateCcw className="w-4 h-4" />
           <span>Reset Local Demo Data</span>
+=======
+        <button
+          onClick={() => {
+            playTapSound();
+            if (confirm('Reset all demo data back to default medicines and reminders?')) {
+              onResetData();
+            }
+          }}
+          className="w-full p-3 bg-rose-50/70 hover:bg-rose-100 text-rose-700 rounded-2xl font-semibold text-xs flex items-center justify-center gap-2 border border-rose-100 transition-colors mt-2"
+        >
+          <RotateCcw className="w-4 h-4" />
+          <span>Reset Sample Demo Data</span>
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
         </button>
       </div>
     </div>

@@ -30,10 +30,17 @@ export function createApp(): Express {
   const app = express();
   const env = getEnv();
 
+<<<<<<< HEAD
+=======
+  // Do not expose Express implementation details.
+  app.disable('x-powered-by');
+
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
   // ─── Security headers ─────────────────────────────────────────────────────
   app.use(helmet());
 
   // ─── CORS ─────────────────────────────────────────────────────────────────
+<<<<<<< HEAD
   const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map((o) => o.trim());
   app.use(
     cors({
@@ -44,6 +51,21 @@ export function createApp(): Express {
         } else {
           callback(new Error(`Origin ${origin} not allowed by CORS`));
         }
+=======
+  const allowedOrigins = env.ALLOWED_ORIGINS.split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        // Mobile clients commonly omit the Origin header.
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+          return;
+        }
+        callback(new Error('Origin not allowed by CORS'));
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
       },
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
@@ -52,9 +74,16 @@ export function createApp(): Express {
     }),
   );
 
+<<<<<<< HEAD
   // ─── Request parsing ───────────────────────────────────────────────────────
   app.use(express.json({ limit: '25mb' }));
   app.use(express.urlencoded({ extended: true }));
+=======
+  // ─── Request parsing ─────────────────────────────────────────────────────
+  // Media is handled through the dedicated upload flow; JSON should remain small.
+  app.use(express.json({ limit: '1mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 
   // ─── Request ID ───────────────────────────────────────────────────────────
   app.use(requestIdMiddleware);
@@ -64,7 +93,10 @@ export function createApp(): Express {
     app.use(
       morgan('combined', {
         stream: { write: (msg) => logger.http(msg.trim()) },
+<<<<<<< HEAD
         // Skip health check logs
+=======
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
         skip: (req) => req.url === '/api/v1/health',
       }),
     );

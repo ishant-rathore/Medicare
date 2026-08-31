@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 import { requireAuth } from '../../middleware/auth.middleware';
 import { ResponseHelper } from '../../shared/response.helper';
+<<<<<<< HEAD
 import { NotFoundError, AuthorizationError } from '../../shared/errors/app-error';
 import { prisma } from '../../config/database';
 
@@ -17,12 +18,24 @@ const createReminderSchema = z.object({
   scheduledTimes: z.array(z.string().regex(/^\d{2}:\d{2}$/, 'Time must be HH:MM')).min(1).max(10),
   recurrence: z.enum(['ONE_TIME', 'DAILY', 'WEEKLY', 'ALTERNATE_DAYS', 'EVERY_8_HOURS', 'EVERY_12_HOURS', 'AS_NEEDED']),
   daysOfWeek: z.array(z.number().int().min(0).max(6)).default([]),
+=======
+import { RemindersService } from './reminders.service';
+
+const router = Router();
+
+const reminderSchema = z.object({
+  medicineId: z.string().uuid(),
+  scheduledTimes: z.array(z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Time must be HH:MM')).min(1).max(10),
+  recurrence: z.enum(['ONE_TIME', 'DAILY', 'WEEKLY', 'ALTERNATE_DAYS', 'EVERY_8_HOURS', 'EVERY_12_HOURS', 'AS_NEEDED']),
+  daysOfWeek: z.array(z.number().int().min(0).max(6)).max(7).default([]),
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   snoozeMinutes: z.number().int().min(1).max(60).default(10),
   notes: z.string().max(500).optional(),
 });
 
+<<<<<<< HEAD
 router.use(requireAuth);
 
 /** GET /api/v1/reminders — List all reminders for user */
@@ -39,11 +52,23 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       orderBy: { createdAt: 'desc' },
     });
     ResponseHelper.ok(res, reminders);
+=======
+const updateReminderSchema = reminderSchema.partial().extend({
+  isActive: z.boolean().optional(),
+});
+
+router.use(requireAuth);
+
+router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    ResponseHelper.ok(res, await RemindersService.list(req.userId!));
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
   } catch (error) {
     next(error);
   }
 });
 
+<<<<<<< HEAD
 /** POST /api/v1/reminders — Create a reminder */
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -73,12 +98,19 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       },
     });
 
+=======
+router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const data = reminderSchema.parse(req.body);
+    const reminder = await RemindersService.create(req.userId!, data);
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
     ResponseHelper.created(res, reminder, 'Reminder scheduled successfully');
   } catch (error) {
     next(error);
   }
 });
 
+<<<<<<< HEAD
 /** PUT /api/v1/reminders/:id — Update a reminder */
 router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -104,11 +136,20 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
     });
 
     ResponseHelper.ok(res, updated);
+=======
+router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = z.string().uuid().parse(req.params.id);
+    const data = updateReminderSchema.parse(req.body);
+    const updated = await RemindersService.update(req.userId!, id, data);
+    ResponseHelper.ok(res, updated, 'Reminder updated');
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
   } catch (error) {
     next(error);
   }
 });
 
+<<<<<<< HEAD
 /** DELETE /api/v1/reminders/:id */
 router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -122,6 +163,12 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
     if (!existing) throw new NotFoundError('Reminder');
 
     await prisma.reminder.update({ where: { id }, data: { deletedAt: new Date(), isActive: false } });
+=======
+router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = z.string().uuid().parse(req.params.id);
+    await RemindersService.deactivate(req.userId!, id);
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
     ResponseHelper.noContent(res);
   } catch (error) {
     next(error);

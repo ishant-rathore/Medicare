@@ -8,7 +8,10 @@ import {
   VoiceSettings,
   NotificationSettings,
 } from '../types';
+<<<<<<< HEAD
 import { syncEngine } from '../services/syncEngine';
+=======
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 
 const STORAGE_KEYS = {
   USER_PROFILE: 'medicare_user_profile',
@@ -361,6 +364,7 @@ export const DEFAULT_NOTIFICATIONS: NotificationSettings = {
   notifyCaregiversList: ['Anita Sharma (+91 98765 43211)'],
 };
 
+<<<<<<< HEAD
 export function getPeriodForTime(timeStr: string): 'Morning' | 'Afternoon' | 'Evening' | 'Night' {
   const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)?/i);
   if (!match) return 'Morning';
@@ -387,6 +391,8 @@ export function generateSpokenScriptForDose(
   return `${nick}, it is ${timeStr}. Please take your ${colorStr} ${med.name}, ${med.dosage}, ${mealStr}.`;
 }
 
+=======
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 // Storage helper functions
 export function loadFromStorage<T>(key: string, defaultValue: T): T {
   try {
@@ -421,6 +427,7 @@ export function getMedicines(): Medicine[] {
 
 export function saveMedicines(meds: Medicine[]): void {
   saveToStorage(STORAGE_KEYS.MEDICINES, meds);
+<<<<<<< HEAD
   try {
     for (const med of meds) {
       syncEngine.enqueue('medicine', 'CREATE', {
@@ -678,6 +685,16 @@ export function getDoseHistory(range: 'Today' | 'Week' | 'Month' | 'All' = 'Toda
       }
       return b.scheduledTime.localeCompare(a.scheduledTime);
     });
+=======
+}
+
+export function getTodayDoses(): DoseEvent[] {
+  return loadFromStorage<DoseEvent[]>(STORAGE_KEYS.DOSES, generateInitialDoses());
+}
+
+export function saveTodayDoses(doses: DoseEvent[]): void {
+  saveToStorage(STORAGE_KEYS.DOSES, doses);
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 }
 
 export function getEmergencyContacts(): EmergencyContact[] {
@@ -699,7 +716,11 @@ export function saveAccessibilitySettings(settings: AccessibilitySettings): void
 export function resetToInitialSeedData(): void {
   saveUserProfile(DEFAULT_USER);
   saveMedicines(DEFAULT_MEDICINES);
+<<<<<<< HEAD
   saveAllDoses(generateInitialDoses());
+=======
+  saveTodayDoses(generateInitialDoses());
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
   saveEmergencyContacts(DEFAULT_EMERGENCY_CONTACTS);
   saveAccessibilitySettings(DEFAULT_ACCESSIBILITY);
 }

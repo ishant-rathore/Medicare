@@ -12,6 +12,7 @@ import {
   Pill,
   UserPlus,
   LogIn,
+<<<<<<< HEAD
   Loader2,
   Sparkles,
 } from 'lucide-react';
@@ -19,6 +20,11 @@ import { speakText, playTapSound } from '../utils/audio';
 import { UserProfile } from '../types';
 import { loginWithEmailOrPhone, registerWithEmailOrPhone, setDemoMode } from '../services/firebaseAuth';
 import { apiClient } from '../services/apiClient';
+=======
+} from 'lucide-react';
+import { speakText, playTapSound } from '../utils/audio';
+import { UserProfile } from '../types';
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 
 interface AuthViewProps {
   mode: 'login' | 'register';
@@ -35,6 +41,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onSwitchMode, onSucces
   const [emergencyPhone, setEmergencyPhone] = useState('+91 98765 43211');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+<<<<<<< HEAD
   const [isLoading, setIsLoading] = useState(false);
 
   const getFriendlyErrorMessage = (error: any): string => {
@@ -177,6 +184,43 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onSwitchMode, onSucces
     } finally {
       setIsLoading(false);
     }
+=======
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    playTapSound();
+    if (!phone) {
+      setErrorMsg('Please enter your phone number.');
+      return;
+    }
+    speakText('Logging you into Medicare. Welcome back!', { volume: 'loud' });
+    onSuccess({
+      phone,
+      name: 'Ramesh Kumar',
+      nickname: 'Grandpa',
+    });
+  };
+
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    playTapSound();
+    if (!fullName || !phone) {
+      setErrorMsg('Please fill in your name and phone number.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setErrorMsg('Passwords do not match.');
+      return;
+    }
+    speakText(`Account created for ${fullName}. Welcome to Medicare!`, { volume: 'loud' });
+    onSuccess({
+      name: fullName,
+      nickname: fullName.split(' ')[0],
+      phone,
+      preferredLanguage: language,
+      caregiverPhone: emergencyPhone,
+    });
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
   };
 
   return (
@@ -272,6 +316,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onSwitchMode, onSucces
             <button
               id="btn-auth-login"
               type="submit"
+<<<<<<< HEAD
               disabled={isLoading}
               className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-60 text-white text-xl font-black py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-transform active:scale-98"
             >
@@ -302,11 +347,25 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onSwitchMode, onSucces
 
             {/* Divider */}
             <div className="relative my-3">
+=======
+              className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xl font-black py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-transform active:scale-98"
+            >
+              <LogIn className="w-6 h-6" />
+              <span>Login</span>
+            </button>
+
+            {/* Divider */}
+            <div className="relative my-4">
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-slate-200" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
+<<<<<<< HEAD
                 <span className="bg-white px-3 font-black text-slate-500">OR</span>
+=======
+                <span className="bg-white px-3 font-black text-slate-700">OR</span>
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
               </div>
             </div>
 
@@ -314,7 +373,10 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onSwitchMode, onSucces
             <button
               id="btn-auth-switch-register"
               type="button"
+<<<<<<< HEAD
               disabled={isLoading}
+=======
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
               onClick={() => {
                 playTapSound();
                 onSwitchMode('register');
@@ -324,6 +386,21 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onSwitchMode, onSucces
               <UserPlus className="w-5 h-5" />
               <span>Create New Account</span>
             </button>
+<<<<<<< HEAD
+=======
+
+            {/* Demo One-Click Google Login */}
+            <button
+              type="button"
+              onClick={() => {
+                playTapSound();
+                onSuccess();
+              }}
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-bold py-3 rounded-2xl flex items-center justify-center gap-2 transition-colors"
+            >
+              <span>Continue with Google / Quick Demo</span>
+            </button>
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
           </form>
         ) : (
           <form onSubmit={handleRegister} className="space-y-3.5">
@@ -433,6 +510,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onSwitchMode, onSucces
             <button
               id="btn-auth-register"
               type="submit"
+<<<<<<< HEAD
               disabled={isLoading}
               className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-60 text-white text-lg font-black py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-transform active:scale-98 mt-2"
             >
@@ -447,6 +525,12 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onSwitchMode, onSucces
                   <span>Create Account</span>
                 </>
               )}
+=======
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-black py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-transform active:scale-98 mt-2"
+            >
+              <UserPlus className="w-5 h-5" />
+              <span>Create Account</span>
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
             </button>
 
             {/* Back to Login */}

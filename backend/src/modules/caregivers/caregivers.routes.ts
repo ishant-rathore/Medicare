@@ -8,15 +8,23 @@ import { z } from 'zod';
 
 import { requireAuth } from '../../middleware/auth.middleware';
 import { ResponseHelper } from '../../shared/response.helper';
+<<<<<<< HEAD
 import { NotFoundError, AuthorizationError } from '../../shared/errors/app-error';
 import { prisma } from '../../config/database';
+=======
+import { CaregiversService } from './caregivers.service';
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 
 const router = Router();
 
 const addCaregiverSchema = z.object({
   caregiverEmail: z.string().email(),
   accessLevel: z.enum(['VIEW_ONLY', 'MANAGE']).default('VIEW_ONLY'),
+<<<<<<< HEAD
   relationLabel: z.string().max(100).optional(),
+=======
+  relationLabel: z.string().trim().max(100).optional(),
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
   notifyOnMissed: z.boolean().default(true),
   notifyOnTaken: z.boolean().default(false),
   notifyOnLowStock: z.boolean().default(true),
@@ -24,6 +32,7 @@ const addCaregiverSchema = z.object({
 
 router.use(requireAuth);
 
+<<<<<<< HEAD
 /** GET /api/v1/caregivers — List caregivers for this user */
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -36,12 +45,19 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       include: { caregiver: { select: { name: true, email: true, photoUrl: true } } },
     });
 
+=======
+router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = await CaregiversService.getOwnerByFirebaseUid(req.userId!);
+    const caregivers = await CaregiversService.list(user.id);
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
     ResponseHelper.ok(res, caregivers);
   } catch (error) {
     next(error);
   }
 });
 
+<<<<<<< HEAD
 /** POST /api/v1/caregivers — Add a caregiver by email */
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -84,12 +100,20 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       },
     });
 
+=======
+router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const owner = await CaregiversService.getOwnerByFirebaseUid(req.userId!);
+    const data = addCaregiverSchema.parse(req.body);
+    const relation = await CaregiversService.add(owner.id, data);
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
     ResponseHelper.created(res, relation, 'Caregiver added successfully');
   } catch (error) {
     next(error);
   }
 });
 
+<<<<<<< HEAD
 /** DELETE /api/v1/caregivers/:id — Remove a caregiver */
 router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -108,12 +132,20 @@ router.delete('/:id', async (req: Request, res: Response, next: NextFunction) =>
       data: { isActive: false, updatedAt: new Date() },
     });
 
+=======
+router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const relationId = z.string().uuid().parse(req.params.id);
+    const owner = await CaregiversService.getOwnerByFirebaseUid(req.userId!);
+    await CaregiversService.revoke(owner.id, relationId);
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
     ResponseHelper.noContent(res);
   } catch (error) {
     next(error);
   }
 });
 
+<<<<<<< HEAD
 /** GET /api/v1/caregivers/monitoring — Get data for caregiver monitoring */
 router.get('/monitoring/:userId', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -149,6 +181,14 @@ router.get('/monitoring/:userId', async (req: Request, res: Response, next: Next
     });
 
     ResponseHelper.ok(res, { user, todayDoses, accessLevel: relation.accessLevel });
+=======
+router.get('/monitoring/:userId', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const targetUserId = z.string().uuid().parse(req.params.userId);
+    const caregiver = await CaregiversService.getOwnerByFirebaseUid(req.userId!);
+    const result = await CaregiversService.monitoring(caregiver.id, targetUserId);
+    ResponseHelper.ok(res, result);
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
   } catch (error) {
     next(error);
   }

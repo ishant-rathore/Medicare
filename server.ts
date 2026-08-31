@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 import express, { Request, Response, NextFunction } from 'express';
+=======
+import express, { Request, Response } from 'express';
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
+<<<<<<< HEAD
 import { requireAuth, optionalAuth } from './backend/src/middleware/auth.middleware';
 import {
   resolveUserFromFirebase,
@@ -19,6 +24,8 @@ import {
   RecurrenceType,
 } from './backend/src/services/database.service';
 import { SyncEngineService } from './backend/src/services/sync-engine.service';
+=======
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 
 dotenv.config();
 
@@ -29,7 +36,10 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json({ limit: '25mb' }));
+<<<<<<< HEAD
 app.use(express.urlencoded({ extended: true }));
+=======
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 
 // Initialize Google GenAI lazily
 let aiClient: GoogleGenAI | null = null;
@@ -47,6 +57,7 @@ function getGenAI(): GoogleGenAI | null {
   return aiClient;
 }
 
+<<<<<<< HEAD
 // ─── HEALTH & CONFIG ────────────────────────────────────────────────────────
 app.get(['/api/health', '/api/v1/health'], (_req: Request, res: Response) => {
   res.json({
@@ -595,6 +606,14 @@ app.delete('/api/v1/device-tokens', requireAuth, async (req: Request, res: Respo
 });
 
 // ─── AI PRESCRIPTION SCANNER ────────────────────────────────────────────────
+=======
+// Health route
+app.get('/api/health', (req: Request, res: Response) => {
+  res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
+// AI Prescription Scanner endpoint
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 app.post('/api/prescription/scan', async (req: Request, res: Response) => {
   const fallbackMedicines = [
     {
@@ -746,6 +765,7 @@ Never provide dangerous clinical diagnoses; extract exact text as written.`;
   }
 });
 
+<<<<<<< HEAD
 // ─── VOICE ASSISTANT (INSTANT CONVERSATIONAL NLP MODEL) ──────────────────────
 app.post('/api/voice-assistant', async (req: Request, res: Response) => {
   const { transcript: rawTranscript, userQuery, query, text, userContext } = req.body;
@@ -846,6 +866,123 @@ app.post('/api/voice-assistant', async (req: Request, res: Response) => {
     spokenResponse: spokenReply,
     confidence: 96,
   });
+=======
+// Voice Assistant AI command interpreter
+app.post('/api/voice-assistant', async (req: Request, res: Response) => {
+  const { transcript: rawTranscript, userQuery, query, text, language = 'en', userContext } = req.body;
+  const transcript = (rawTranscript || userQuery || query || text || '').trim();
+  const seniorName = userContext?.seniorName || userContext?.nickname || 'Grandpa';
+  const todayDoses = userContext?.todayDoses || [];
+
+  // Helper for smart local fallback
+  const getFallbackResponse = () => {
+    const lower = transcript.toLowerCase();
+    let action = 'answer';
+    let spokenReply = `Hello ${seniorName}! I am here to help you with your daily medicines.`;
+
+    if (lower.includes('today') || lower.includes('medicines') || lower.includes('schedule') || lower.includes('what do i take')) {
+      action = 'show_today';
+      if (todayDoses.length > 0) {
+        const pendingCount = todayDoses.filter((d: any) => d.status === 'pending').length;
+        spokenReply = `${seniorName}, you have ${todayDoses.length} medicines scheduled today, with ${pendingCount} remaining. Your next medicine is scheduled soon.`;
+      } else {
+        spokenReply = `${seniorName}, you have 4 medicines scheduled today. Your next dose is Metformin 500mg after lunch.`;
+      }
+    } else if (lower.includes('next') || lower.includes('when') || lower.includes('upcoming')) {
+      action = 'next_reminder';
+      const pending = todayDoses.find((d: any) => d.status === 'pending');
+      if (pending) {
+        spokenReply = `Your next medicine is ${pending.medicineName} ${pending.dosage || ''} at ${pending.scheduledTime || '2:00 PM'}.`;
+      } else {
+        spokenReply = `Your next medicine is the Blue tablet, Metformin 500mg, scheduled at 2:00 PM after lunch.`;
+      }
+    } else if (lower.includes('add') || lower.includes('new') || lower.includes('prescribe')) {
+      action = 'add_medicine';
+      spokenReply = `Opening the Add Medicine screen for you, ${seniorName}. You can tell me the name and timing.`;
+    } else if (lower.includes('took') || lower.includes('taken') || lower.includes('done') || lower.includes('mark') || lower.includes('swallowed')) {
+      action = 'mark_taken';
+      spokenReply = `Wonderful ${seniorName}! I have marked your scheduled dose as taken. Great job staying healthy!`;
+    } else if (lower.includes('call') || lower.includes('caregiver') || lower.includes('doctor') || lower.includes('son') || lower.includes('daughter')) {
+      action = 'call_caregiver';
+      spokenReply = `Connecting you to your caregiver right now.`;
+    } else if (lower.includes('sos') || lower.includes('help') || lower.includes('emergency') || lower.includes('fell')) {
+      action = 'open_sos';
+      spokenReply = `Opening Emergency SOS immediately. Stay calm, help is on the way.`;
+    } else if (lower.includes('history') || lower.includes('report') || lower.includes('log')) {
+      action = 'open_history';
+      spokenReply = `Opening your medication history and adherence report.`;
+    }
+
+    return {
+      action,
+      actionIntent: action,
+      reply: spokenReply,
+      spokenReply,
+      spokenResponse: spokenReply,
+      confidence: 90,
+    };
+  };
+
+  try {
+    const ai = getGenAI();
+
+    if (!ai) {
+      return res.json({
+        success: true,
+        ...getFallbackResponse(),
+      });
+    }
+
+    const systemPrompt = `You are "Medicare Voice Companion", a warm, clear, senior-friendly voice assistant for elderly users managing their daily medications.
+Keep replies very short (1 to 2 spoken sentences), gentle, extremely clear, respectful (calling them "${seniorName}"), and avoid clinical jargon.
+Supported actions: 'show_today', 'next_reminder', 'add_medicine', 'mark_taken', 'call_caregiver', 'open_history', 'open_sos', 'answer'.
+The user's preferred language is ${language}. Provide the spokenReply translated warmly into this language if requested, plus the English text.`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.7-flash',
+      contents: [
+        {
+          text: `User Context: ${JSON.stringify(userContext || {})}\nUser Spoke: "${transcript}"`,
+        },
+      ],
+      config: {
+        systemInstruction: systemPrompt,
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            action: { type: Type.STRING },
+            reply: { type: Type.STRING },
+            spokenReply: { type: Type.STRING },
+            confidence: { type: Type.NUMBER },
+          },
+          required: ['action', 'reply', 'spokenReply'],
+        },
+      },
+    });
+
+    const parsed = JSON.parse(response.text || '{}');
+    const fallback = getFallbackResponse();
+    const spokenReply = parsed.spokenReply || parsed.reply || fallback.spokenReply;
+    const action = parsed.action || fallback.action;
+
+    return res.json({
+      success: true,
+      action,
+      actionIntent: action,
+      reply: parsed.reply || spokenReply,
+      spokenReply,
+      spokenResponse: spokenReply,
+      confidence: parsed.confidence || 95,
+    });
+  } catch (err: any) {
+    console.warn('Voice assistant Gemini network notice, using graceful fallback:', err?.message || err);
+    return res.json({
+      success: true,
+      ...getFallbackResponse(),
+    });
+  }
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
 });
 
 // Vite middleware or static serve

@@ -11,11 +11,19 @@
     "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write src/**/*.ts",
     "test": "jest --coverage",
+<<<<<<< HEAD
     "test:unit": "jest --testPathPattern=test/unit",
     "test:integration": "jest --testPathPattern=test/integration",
     "db:migrate": "npx prisma migrate dev",
     "db:migrate:deploy": "npx prisma migrate deploy",
     "db:generate": "npx prisma generate",
+=======
+    "test:unit": "jest --testPathPattern=src/tests/unit",
+    "test:integration": "jest --testPathPattern=src/tests/integration",
+    "db:migrate": "npx prisma migrate dev",
+    "db:migrate:deploy": "npx prisma migrate deploy",
+    "db:generate": "npx prisma generate --schema=src/db/prisma/schema.prisma",
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
     "db:seed": "tsx seeds/seed.ts",
     "db:studio": "npx prisma studio"
   },
@@ -49,14 +57,23 @@
     "jest": "^29.7.0",
     "prettier": "^3.3.2",
     "prisma": "^5.15.0",
+<<<<<<< HEAD
     "ts-jest": "^29.2.2",
+=======
+    "ts-jest": "^29.2.5",
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
     "tsx": "^4.16.0",
     "typescript": "^5.5.3"
   },
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node",
+<<<<<<< HEAD
     "roots": ["<rootDir>/test"],
+=======
+    "roots": ["<rootDir>/src/tests"],
+    "testMatch": ["**/*.test.ts", "**/*.spec.ts"],
+>>>>>>> f50a1494eb319d5be954309fd1b2724ae249fbba
     "collectCoverageFrom": ["src/**/*.ts", "!src/**/*.types.ts"],
     "coverageDirectory": "coverage"
   }
