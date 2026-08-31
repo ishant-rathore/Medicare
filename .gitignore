@@ -1,0 +1,174 @@
+# =============================================================================
+# Medicare – Voice Reminders for Senior Citizens
+# .gitignore – Comprehensive ignore rules for all project components
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# SECRETS & ENVIRONMENT
+# -----------------------------------------------------------------------------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+google-services.json
+GoogleService-Info.plist
+firebase-adminsdk*.json
+serviceAccountKey.json
+
+# -----------------------------------------------------------------------------
+# NODE.JS / BACKEND
+# -----------------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+build/
+*.tsbuildinfo
+.tscache/
+coverage/
+.nyc_output/
+*.log
+
+# -----------------------------------------------------------------------------
+# FLUTTER / DART
+# -----------------------------------------------------------------------------
+# Dart/Flutter build artifacts
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+*.dart_tool/
+.pub-cache/
+.pub/
+build/
+frontend/build/
+frontend/.dart_tool/
+
+# Flutter generated files
+frontend/ios/Flutter/flutter_export_environment.sh
+frontend/ios/Pods/
+frontend/android/.gradle/
+frontend/android/local.properties
+frontend/android/app/google-services.json
+frontend/android/key.properties
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+
+# Dart analysis
+.dart_tool/
+frontend/.dart_tool/
+
+# Coverage
+frontend/coverage/
+
+# -----------------------------------------------------------------------------
+# ANDROID
+# -----------------------------------------------------------------------------
+*.iml
+.gradle/
+local.properties
+.idea/workspace.xml
+.idea/libraries
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ipa
+*.dSYM.zip
+*.dSYM
+**/android/app/release/
+**/android/app/debug/
+
+# Android keystore (NEVER commit)
+*.jks
+*.keystore
+key.properties
+
+# -----------------------------------------------------------------------------
+# FIREBASE
+# -----------------------------------------------------------------------------
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+database-debug.log
+firebase/functions/node_modules/
+firebase/functions/lib/
+
+# -----------------------------------------------------------------------------
+# DATABASE
+# -----------------------------------------------------------------------------
+*.sql.bak
+*.sqlite
+*.sqlite3
+*.db
+prisma/.env
+prisma/*.log
+
+# PostgreSQL
+pgdata/
+postgres-data/
+
+# -----------------------------------------------------------------------------
+# DOCKER
+# -----------------------------------------------------------------------------
+.docker/
+docker-data/
+
+# -----------------------------------------------------------------------------
+# EDITORS / IDEs
+# -----------------------------------------------------------------------------
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Keep VSCode extensions recommendations
+!.vscode/extensions.json
+!.vscode/tasks.json
+
+# -----------------------------------------------------------------------------
+# OS
+# -----------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+$RECYCLE.BIN/
+
+# -----------------------------------------------------------------------------
+# TEST ARTIFACTS
+# -----------------------------------------------------------------------------
+test-results/
+playwright-report/
+coverage/
+.coverage
+htmlcov/
+
+# -----------------------------------------------------------------------------
+# MISC
+# -----------------------------------------------------------------------------
+*.tmp
+*.bak
+*.orig
+.cache/
+tmp/
+temp/

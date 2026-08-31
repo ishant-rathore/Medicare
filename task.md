@@ -1,0 +1,45 @@
+# Medicare App Implementation Tasks
+
+- [x] **Phase 1: Project Repository Setup**
+- [x] **Phase 2: Project Architecture Documentation**
+- [x] **Phase 3: Backend Infrastructure Setup**
+- [x] **Phase 4: Backend Module Implementation**
+  - [x] Core Middleware & Database Setup
+  - [x] CRUD Modules (Medicines, Dose Events, Sync)
+  - [x] Idempotent batch processing logic
+- [x] **Phase 5: Frontend Bootstrap**
+  - [x] Core App initialization (`main.dart`, `app_theme.dart`)
+  - [x] Router configuration (`router.dart`)
+- [x] **Phase 6: Frontend Domain & Data Layer**
+  - [x] Domain entities (`Medicine`, `DoseEvent`) and enums (`MedicineType`, `MealTiming`, `RecurrenceType`, `DoseStatus`)
+  - [x] Abstract repositories (`IMedicineRepository`)
+  - [x] SQLite Database Service (WAL mode, offline schema)
+  - [x] Data Access Objects (`MedicineDao`, `DoseEventDao`, `ReminderDao`)
+  - [x] Repository Implementation (`MedicineRepositoryImpl`) wrapping SQLite + Sync Queue
+  - [x] Offline Sync Service (Queue, batch upload, auto-retry)
+- [x] **Phase 7: Frontend Services (Reminder Engine)**
+  - [x] Reminder Engine Orchestrator
+  - [x] Alarm Scheduler (`android_alarm_manager_plus`)
+  - [x] Alarm Receiver (Background Isolate Execution)
+  - [x] Recurrence Calculator (Deterministic pure dart logic)
+  - [x] TTS Service (`flutter_tts`) for spoken reminders
+  - [x] Notification Service (`flutter_local_notifications` lock-screen intent)
+- [x] **Phase 8: Frontend Presentation Layer**
+  - [x] API Client (Dio, Firebase Auth injection, offline retry)
+  - [x] Main Dashboard Page (Senior-friendly design, Greeting, Adherence)
+  - [x] Actionable Dose Card (TAKEN, SNOOZE, SKIP)
+  - [x] Dashboard State Management (Riverpod)
+- [x] **Phase 9: Frontend Medicine Workflows**
+  - [x] Add/Edit Medicine Form
+  - [x] Reminder Configuration
+  - [x] Camera integration for pill photo
+- [x] **Phase 10: Frontend Authentication & Onboarding**
+  - [x] Auth Provider via Firebase Auth
+  - [x] Splash routing page
+  - [x] Senior-friendly Onboarding slides
+  - [x] Login & Register pages
+  - [x] Profile Setup logic
+- [x] **Phase 11: Testing & CI/CD**
+  - [x] GitHub Actions YAML Pipeline for both Backend and Frontend
+  - [x] Backend Jest unit tests (Auth Middleware)
+  - [x] Frontend Flutter unit tests (Recurrence Calculator)

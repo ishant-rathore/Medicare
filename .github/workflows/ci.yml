@@ -1,0 +1,66 @@
+name: Medicare CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-test:
+    name: Backend Lint & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: './backend/package-lock.json'
+        
+    - name: Install Dependencies
+      run: npm ci
+      
+    - name: Type Check
+      run: npx tsc --noEmit
+      
+    - name: Run Tests
+      run: npm run test
+      env:
+        NODE_ENV: test
+        JWT_SECRET: dummy_secret_for_tests
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/medicare_test
+
+  frontend-test:
+    name: Frontend Lint & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0'
+        channel: 'stable'
+        
+    - name: Install Dependencies
+      run: flutter pub get
+      
+    - name: Check Formatting
+      run: flutter format --set-exit-if-changed .
+      
+    - name: Analyze Code
+      run: flutter analyze
+      
+    - name: Run Tests
+      run: flutter test
